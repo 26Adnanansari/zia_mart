@@ -1,0 +1,117 @@
+version: '3.9'
+
+services:
+  postgres_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql  # Mount the script 
+    ports:
+      - "5432:5432"
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL_USER: ${DATABASE_URL_USER}
+      TEST_DATABASE_URL_USER: ${TEST_DATABASE_URL_USER}
+    depends_on:
+      - postgres_db
+    volumes:
+      - ./user-service:/app
+      - user_service_data:/app/data
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL_PRODUCT: ${DATABASE_URL_PRODUCT}
+      TEST_DATABASE_URL_PRODUCT: ${TEST_DATABASE_URL_PRODUCT}
+    depends_on:
+      - postgres_db
+    volumes:
+      - ./product-service:/app
+      - product_service_data:/app/data
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL_ORDER: ${DATABASE_URL_ORDER}
+      TEST_DATABASE_URL_ORDER: ${TEST_DATABASE_URL_ORDER}
+    depends_on:
+      - postgres_db
+    volumes:
+      - ./order-service:/app
+      - order_service_data:/app/data 
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      DATABASE_URL_INVENTORY: ${DATABASE_URL_INVENTORY}
+      TEST_DATABASE_URL_INVENTORY: ${TEST_DATABASE_URL_INVENTORY}
+    depends_on:
+      - postgres_db
+    volumes:
+      - ./inventory-service:/app
+      - inventory_service_data:/app/data
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      DATABASE_URL_PAYMENT: ${DATABASE_URL_PAYMENT}
+      TEST_DATABASE_URL_PAYMENT: ${TEST_DATABASE_URL_PAYMENT}
+    depends_on:
+      - postgres_db
+    volumes:
+      - ./payment-service:/app
+      - payment_service_data:/app/data
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      DATABASE_URL_NOTIFICATION: ${DATABASE_URL_NOTIFICATION}
+      TEST_DATABASE_URL_NOTIFICATION: ${TEST_DATABASE_URL_NOTIFICATION}
+    depends_on:
+      - postgres_db
+    volumes:
+      - ./notification-service:/code
+      - notification_service_data:/code/data      
+
+volumes:
+  postgres_data:
+  user_service_data:
+  product_service_data:
+  order_service_data:
+  inventory_service_data:
+  payment_service_data:
+  notification_service_data:
+
+networks:
+  default:
+    driver: bridge
